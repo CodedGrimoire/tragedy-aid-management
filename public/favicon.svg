@@ -1,0 +1,8 @@
+<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Shield Background -->
+  <path d="M16 4L4 10V22L16 28L28 22V10L16 4Z" fill="#DC2626" fillOpacity="0.1"/>
+  <path d="M16 4L4 10V22L16 28L28 22V10L16 4Z" stroke="#DC2626" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+  
+  <!-- Cross Symbol -->
+  <path d="M16 10V22M10 16H22" stroke="#DC2626" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+</svg>

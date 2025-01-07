@@ -1,0 +1,14 @@
+<svg width="120" height="40" viewBox="0 0 120 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Shield Background -->
+  <path d="M20 4L4 12V28L20 36L36 28V12L20 4Z" fill="#DC2626" fillOpacity="0.1"/>
+  <path d="M20 4L4 12V28L20 36L36 28V12L20 4Z" stroke="#DC2626" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+  
+  <!-- Cross Symbol -->
+  <path d="M20 12V28M12 20H28" stroke="#DC2626" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+  
+  <!-- Text -->
+  <path d="M48 24V16H52C53.1 16 54 16.9 54 18V22C54 23.1 53.1 24 52 24H48ZM50 22H52V18H50V22Z" fill="#111827"/>
+  <path d="M56 24V16H60C61.1 16 62 16.9 62 18V22C62 23.1 61.1 24 60 24H56ZM58 22H60V18H58V22Z" fill="#111827"/>
+  <path d="M64 24V16H72V18H66V19H70V21H66V22H72V24H64Z" fill="#111827"/>
+  <path d="M74 24V16H76V22H82V24H74Z" fill="#111827"/>
+</svg>

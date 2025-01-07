@@ -1,0 +1,14 @@
+{
+    "name": "উদ্ধার - Emergency Response System",
+    "short_name": "উদ্ধার",
+    "icons": [
+      {
+        "src": "/favicon-32x32.png",
+        "sizes": "32x32",
+        "type": "image/png"
+      }
+    ],
+    "theme_color": "#DC2626",
+    "background_color": "#ffffff",
+    "display": "standalone"
+  }

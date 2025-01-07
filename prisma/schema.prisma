@@ -1,0 +1,157 @@
+// prisma/schema.prisma
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  name      String?
+  role      Role     @default(USER)
+  password  String
+  createdAt DateTime @default(now())
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+model Victim {
+  birthCertificateNumber Int     @id
+  name                   String
+  gender                 String? @db.Char(1)
+  medicalID              String? @unique
+  status                 String?
+  eventID                Int?
+  familyID               Int?
+  createdAt              DateTime  @default(now())  // This will auto-set the current time
+  updatedAt              DateTime  @default(now()) @updatedAt 
+
+  medical        Medical?               @relation(name: "VictimMedical", fields: [medicalID], references: [medicalID])
+  event          Event?                 @relation(fields: [eventID], references: [eventID])
+  family         FamilyInfo?            @relation(fields: [familyID], references: [familyID])
+  tragedyVictims TragedyVictim[]
+  govtSubsidies  GovernmentSubsidy[]
+  ngoServices    NGO_Service_Provided[]
+}
+
+model Medical {
+  medicalID        String    @id
+  dateOfBirth      DateTime?
+  dateOfDeath      DateTime?
+  medicalCondition String?
+  bloodGroup       String?
+
+  victim           Victim?            @relation(name: "VictimMedical")
+  victimHealthcare VictimHealthcare[]
+}
+
+model FamilyInfo {
+  familyID Int     @id @default(autoincrement())
+  headName String?
+  contact  String? @db.VarChar(15)
+  address  String?
+
+  victims   Victim[]
+  recipient Recipient?
+}
+
+model Recipient {
+  supportID    Int       @id @default(autoincrement())
+  familyID     Int       @unique
+  dateReceived DateTime?
+
+  family FamilyInfo @relation(fields: [familyID], references: [familyID])
+}
+
+model FamilySupport {
+  supportID   Int     @id @default(autoincrement())
+  supportType String?
+  amount      Float?
+}
+
+model Event {
+  eventID     Int       @id @default(autoincrement())
+  date        DateTime?
+  description String?
+  location    String?
+
+  victims Victim[]
+}
+
+model NGO {
+  ngoID       Int     @id @default(autoincrement())
+  name        String?
+  contact     String?
+  supportType String?
+
+  servicesProvided NGO_Service_Provided[]
+}
+
+model NGO_Service_Provided {
+  serviceID              Int @id @default(autoincrement())
+  birthCertificateNumber Int
+  ngoID                  Int
+
+  victim Victim @relation(fields: [birthCertificateNumber], references: [birthCertificateNumber])
+  ngo    NGO    @relation(fields: [ngoID], references: [ngoID])
+}
+
+model HealthcareProvider {
+  providerID Int     @id @default(autoincrement())
+  name       String?
+  address    String?
+  contact    String?
+
+  victimHealthcare VictimHealthcare[]
+}
+
+model VictimHealthcare {
+  recordID    Int       @id @default(autoincrement())
+  medicalID   String
+  providerID  Int
+  serviceDate DateTime?
+  description String?
+
+  medical            Medical            @relation(fields: [medicalID], references: [medicalID])
+  healthcareProvider HealthcareProvider @relation(fields: [providerID], references: [providerID])
+}
+
+model GovernmentSubsidy {
+  subsidyID              Int       @id @default(autoincrement())
+  birthCertificateNumber Int
+  dateReceived           DateTime?
+
+  victim Victim @relation(fields: [birthCertificateNumber], references: [birthCertificateNumber])
+}
+
+model Subsidy {
+  subsidyID        Int     @id @default(autoincrement())
+  medicalCondition String?
+  amount           Float?
+  eligibility      String?
+}
+
+model Tragedy {
+  tragedyID   Int     @id @default(autoincrement())
+  tragedyName String?
+
+  tragedyVictims TragedyVictim[]
+}
+
+model TragedyVictim {
+  tragedyVictimID        Int @id @default(autoincrement())
+  tragedyID              Int
+  birthCertificateNumber Int
+
+  tragedy Tragedy @relation(fields: [tragedyID], references: [tragedyID])
+  victim  Victim  @relation(fields: [birthCertificateNumber], references: [birthCertificateNumber])
+}
