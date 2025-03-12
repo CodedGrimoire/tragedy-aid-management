@@ -4,31 +4,66 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 
 export default function SignupPage() {
-  const router = useRouter()
+  const router = useRouter();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     password: '',
     confirmPassword: '',
-  })
+    adminCode: '',
+  });
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
-    // Add your signup logic here
-    console.log('Signup attempt:', formData)
-  }
+    e.preventDefault();
+
+    if (formData.password !== formData.confirmPassword) {
+      alert('Passwords do not match');
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        alert(data.error || 'Signup failed');
+        return;
+      }
+
+      // ✅ Store token in localStorage
+      if (data.token) {
+        localStorage.setItem('auth_token', data.token);
+      }
+
+      alert('Signup successful! Redirecting...');
+      router.push('/'); // ✅ Redirect to home page
+    } catch (error) {
+      console.error('Signup error:', error);
+      alert('Something went wrong, please try again.');
+    }
+  };
 
   return (
     <div className="min-h-screen flex">
-      {/* Left Side - Image */}
-      <div className="hidden lg:flex w-1/2 bg-cover bg-center" 
-           style={{ 
-             backgroundImage: "url('https://images.unsplash.com/photo-1579451861283-a2239070aaa9?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1950&q=80')",
-           }}>
-        <div className="flex items-center h-full w-full bg-gray-900 bg-opacity-40">
-          <div className="text-white px-20">
-            <h1 className="text-5xl font-bold mb-6">Join Us Today</h1>
-            <p className="text-lg">Create an account and start making a difference in people's lives.</p>
+      <div 
+        className="hidden lg:flex w-1/2 bg-cover bg-center" 
+        style={{ 
+          backgroundImage: "url('https://png.pngtree.com/thumb_back/fh260/back_our/20190628/ourmid/pngtree-beautiful-red-aids-illustration-background-image_279830.jpg')", 
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+        }}
+      >
+        <div className="flex items-center h-full w-full bg-gray-900 bg-opacity-40 text-white px-20">
+          <div>
+            <h1 className="text-5xl font-bold mb-6">Welcome to Our Tragedy Aid Management Website</h1>
+            <p className="text-lg">
+              Our website is dedicated to providing assistance and support to individuals and families impacted by tragic events. Join us today to make a difference and help those in need.
+            </p>
           </div>
         </div>
       </div>
@@ -46,7 +81,7 @@ export default function SignupPage() {
               <label className="text-sm font-medium text-gray-700 block mb-2">Full Name</label>
               <input
                 type="text"
-                className="w-full px-4 py-3 rounded-lg bg-gray-100 border border-gray-300 focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/40 transition duration-200"
+                className="w-full px-4 py-3 rounded-lg bg-gray-100 border border-gray-300"
                 placeholder="John Doe"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
@@ -58,7 +93,7 @@ export default function SignupPage() {
               <label className="text-sm font-medium text-gray-700 block mb-2">Email Address</label>
               <input
                 type="email"
-                className="w-full px-4 py-3 rounded-lg bg-gray-100 border border-gray-300 focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/40 transition duration-200"
+                className="w-full px-4 py-3 rounded-lg bg-gray-100 border border-gray-300"
                 placeholder="you@example.com"
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
@@ -70,7 +105,7 @@ export default function SignupPage() {
               <label className="text-sm font-medium text-gray-700 block mb-2">Password</label>
               <input
                 type="password"
-                className="w-full px-4 py-3 rounded-lg bg-gray-100 border border-gray-300 focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/40 transition duration-200"
+                className="w-full px-4 py-3 rounded-lg bg-gray-100 border border-gray-300"
                 placeholder="Enter your password"
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
@@ -82,7 +117,7 @@ export default function SignupPage() {
               <label className="text-sm font-medium text-gray-700 block mb-2">Confirm Password</label>
               <input
                 type="password"
-                className="w-full px-4 py-3 rounded-lg bg-gray-100 border border-gray-300 focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/40 transition duration-200"
+                className="w-full px-4 py-3 rounded-lg bg-gray-100 border border-gray-300"
                 placeholder="Confirm your password"
                 value={formData.confirmPassword}
                 onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
@@ -90,38 +125,23 @@ export default function SignupPage() {
               />
             </div>
 
-            <div className="flex items-center">
+            <div>
+              <label className="text-sm font-medium text-gray-700 block mb-2">Admin Code</label>
               <input
-                type="checkbox"
-                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                required
+                type="text"
+                className="w-full px-4 py-3 rounded-lg bg-gray-100 border border-gray-300"
+                placeholder="Enter admin code"
+                value={formData.adminCode}
+                onChange={(e) => setFormData({ ...formData, adminCode: e.target.value })}
               />
-              <label className="ml-2 block text-sm text-gray-700">
-                I agree to the{' '}
-                <Link href="/terms" className="text-blue-600 hover:underline">
-                  Terms and Conditions
-                </Link>
-              </label>
             </div>
 
-            <button
-              type="submit"
-              className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-200"
-            >
+            <button type="submit" className="w-full py-3 text-white bg-red-600 hover:bg-red-700 rounded-full">
               Create Account
             </button>
           </form>
-
-          <div className="text-center mt-6">
-            <p className="text-sm text-gray-600">
-              Already have an account?{' '}
-              <Link href="/login" className="text-blue-600 hover:underline">
-                Sign in
-              </Link>
-            </p>
-          </div>
         </div>
       </div>
     </div>
-  )
+  );
 }

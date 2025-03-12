@@ -3,7 +3,7 @@
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
-  shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 generator client {
@@ -25,22 +25,24 @@ enum Role {
 }
 
 model Victim {
-  birthCertificateNumber Int     @id
+  birthCertificateNumber Int       @id
   name                   String
-  gender                 String? @db.Char(1)
-  medicalID              String? @unique
+  gender                 String?   @db.Char(1)
+  medicalID              String?   @unique
   status                 String?
   eventID                Int?
   familyID               Int?
-  createdAt              DateTime  @default(now())  // This will auto-set the current time
+  createdAt              DateTime  @default(now())
   updatedAt              DateTime  @default(now()) @updatedAt 
 
-  medical        Medical?               @relation(name: "VictimMedical", fields: [medicalID], references: [medicalID])
-  event          Event?                 @relation(fields: [eventID], references: [eventID])
-  family         FamilyInfo?            @relation(fields: [familyID], references: [familyID])
-  tragedyVictims TragedyVictim[]
-  govtSubsidies  GovernmentSubsidy[]
-  ngoServices    NGO_Service_Provided[]
+  medical                Medical?               @relation(name: "VictimMedical", fields: [medicalID], references: [medicalID])
+  event                  Event?                 @relation(fields: [eventID], references: [eventID])
+  family                 FamilyInfo?            @relation(fields: [familyID], references: [familyID])
+  tragedyVictims         TragedyVictim[]
+  govtSubsidies          GovernmentSubsidy[]
+  ngoServices            NGO_Service_Provided[]
+  serviceRequests        ServiceRequest[]
+  needs                  VictimNeed[]
 }
 
 model Medical {
@@ -83,26 +85,53 @@ model Event {
   date        DateTime?
   description String?
   location    String?
+  type        String?   // Added event type field
+  lat         Float?    // Added latitude for mapping
+  lng         Float?    // Added longitude for mapping
+  victimCount Int?      // Added count of victims for quick reference
 
   victims Victim[]
 }
 
+// Enhanced NGO model
 model NGO {
-  ngoID       Int     @id @default(autoincrement())
-  name        String?
-  contact     String?
-  supportType String?
+  ngoID             Int     @id @default(autoincrement())
+  name              String?
+  contact           String?
+  supportType       String?
+  email             String? @unique
+  website           String?
+  focusArea         String? // Main focus like "medical", "food", "education"
+  foundedYear       Int?
+  registrationNo    String? @unique
+  primaryContact    String?
+  isVerified        Boolean @default(false)
+  isActive          Boolean @default(true)
+  address           String?
+  description       String?
+  availableResources String?
 
-  servicesProvided NGO_Service_Provided[]
+  servicesProvided  NGO_Service_Provided[]
+  serviceAreas      NGO_ServiceArea[]
+  resources         NGO_ResourceInventory[]
+  staff             NGO_Staff[]
+  serviceRequests   ServiceRequest[]
 }
 
+// Enhanced NGO_Service_Provided model
 model NGO_Service_Provided {
-  serviceID              Int @id @default(autoincrement())
+  serviceID              Int       @id @default(autoincrement())
   birthCertificateNumber Int
   ngoID                  Int
+  serviceType            String?   // Added service type field
+  startDate              DateTime  @default(now())
+  endDate                DateTime?
+  status                 String    @default("active") // "active", "completed", "discontinued"
+  notes                  String?
 
-  victim Victim @relation(fields: [birthCertificateNumber], references: [birthCertificateNumber])
-  ngo    NGO    @relation(fields: [ngoID], references: [ngoID])
+  victim                 Victim    @relation(fields: [birthCertificateNumber], references: [birthCertificateNumber])
+  ngo                    NGO       @relation(fields: [ngoID], references: [ngoID])
+  deliveryLogs           ServiceDeliveryLog[]
 }
 
 model HealthcareProvider {
@@ -154,4 +183,116 @@ model TragedyVictim {
 
   tragedy Tragedy @relation(fields: [tragedyID], references: [tragedyID])
   victim  Victim  @relation(fields: [birthCertificateNumber], references: [birthCertificateNumber])
+}
+
+// New models for NGO geographic allocation and victim assistance
+
+model NGO_ServiceArea {
+  serviceAreaID Int      @id @default(autoincrement())
+  ngoID         Int
+  locationName  String
+  latitude      Float    // Center point latitude
+  longitude     Float    // Center point longitude
+  radiusKm      Float    // Service radius in kilometers
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  ngo           NGO      @relation(fields: [ngoID], references: [ngoID])
+}
+
+model NGO_ResourceInventory {
+  inventoryID     Int      @id @default(autoincrement())
+  ngoID           Int
+  resourceType    String   // e.g., "food", "medicine", "shelter", "clothing"
+  resourceName    String
+  quantity        Int
+  unit            String?  // e.g., "kg", "pieces", "beds"
+  expiryDate      DateTime?
+  lastUpdated     DateTime @updatedAt
+  isAvailable     Boolean  @default(true)
+  notes           String?
+
+  ngo             NGO      @relation(fields: [ngoID], references: [ngoID])
+  serviceItems    ServiceItem[]
+}
+
+model NGO_Staff {
+  staffID          Int      @id @default(autoincrement())
+  ngoID            Int
+  name             String
+  role             String
+  contact          String?
+  email            String?  @unique
+  isActive         Boolean  @default(true)
+  specialization   String?  // e.g., "medical", "logistics", "counseling"
+  joiningDate      DateTime @default(now())
+  
+  ngo              NGO      @relation(fields: [ngoID], references: [ngoID])
+  serviceRequests  ServiceRequest[]
+  serviceDeliveryLogs ServiceDeliveryLog[]
+}
+
+model ServiceRequest {
+  requestID               Int       @id @default(autoincrement())
+  birthCertificateNumber  Int
+  ngoID                   Int
+  requestType             String    // Type of service needed
+  urgencyLevel            String    // "high", "medium", "low"
+  requestDate             DateTime  @default(now())
+  status                  String    // "pending", "approved", "in_progress", "completed", "denied"
+  notes                   String?
+  respondedBy             Int?      // ID of NGO staff who responded
+  responseDate            DateTime?
+  completionDate          DateTime?
+  
+  victim                  Victim    @relation(fields: [birthCertificateNumber], references: [birthCertificateNumber])
+  ngo                     NGO       @relation(fields: [ngoID], references: [ngoID])
+  ngoStaff                NGO_Staff? @relation(fields: [respondedBy], references: [staffID])
+  serviceItems            ServiceItem[]
+}
+
+model ServiceItem {
+  serviceItemID    Int      @id @default(autoincrement())
+  requestID        Int
+  inventoryID      Int?     // Optional link to inventory
+  serviceType      String
+  quantity         Int      @default(1)
+  status           String   // "pending", "allocated", "delivered"
+  deliveryDate     DateTime?
+  notes            String?
+
+  request          ServiceRequest @relation(fields: [requestID], references: [requestID])
+  inventory        NGO_ResourceInventory? @relation(fields: [inventoryID], references: [inventoryID])
+}
+
+model ServiceDeliveryLog {
+  logID           Int      @id @default(autoincrement())
+  serviceID       Int      // Reference to NGO_Service_Provided
+  staffID         Int      // Who delivered the service
+  deliveryDate    DateTime @default(now())
+  location        String?  // Where service was delivered
+  feedback        String?  // Feedback from the victim
+  effectivenessRating Int? // Optional rating (e.g., 1-5)
+  followupNeeded  Boolean  @default(false)
+  followupDate    DateTime?
+  notes           String?
+  latitude        Float?   // For mapping the exact delivery location
+  longitude       Float?   // For mapping the exact delivery location
+
+  service         NGO_Service_Provided @relation(fields: [serviceID], references: [serviceID])
+  staff           NGO_Staff @relation(fields: [staffID], references: [staffID])
+}
+
+model VictimNeed {
+  needID                 Int      @id @default(autoincrement())
+  birthCertificateNumber Int
+  needType               String   // e.g., "food", "medicine", "shelter", "counseling"
+  urgencyLevel           String   // "high", "medium", "low"
+  status                 String   // "pending", "addressed", "ongoing"
+  dateIdentified         DateTime @default(now())
+  dateAddressed          DateTime?
+  notes                  String?
+  
+  victim                 Victim   @relation(fields: [birthCertificateNumber], references: [birthCertificateNumber])
 }

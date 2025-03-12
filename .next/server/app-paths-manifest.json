@@ -1,0 +1,10 @@
+{
+  "/api/tragedies/route": "app/api/tragedies/route.js",
+  "/api/crud/route": "app/api/crud/route.js",
+  "/api/events/route": "app/api/events/route.js",
+  "/api/victims/route": "app/api/victims/route.js",
+  "/api/dashboard/route": "app/api/dashboard/route.js",
+  "/(main)/page": "app/(main)/page.js",
+  "/(main)/tragedies/page": "app/(main)/tragedies/page.js",
+  "/(main)/crud/page": "app/(main)/crud/page.js"
+}
