@@ -2,7 +2,7 @@
 
 import { PrismaClient } from '@prisma/client';
 import { NextResponse } from 'next/server';
-import { findNGOsInRadius } from '@/utils/geoUtils';
+
 
 const prisma = new PrismaClient();
 
